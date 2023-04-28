@@ -1,8 +1,10 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
+import {conectarMongoDB} from '../../middlewares/conectarMongoSB';
+import type {RespostaPadraoMsg} from '../../types/RespostaPadraoMsg';
 
-export default  (
+const endpointLogin = (
     req : NextApiRequest,
-    res : NextApiResponse
+    res : NextApiResponse<RespostaPadraoMsg>
 ) => {
         if(req.method === 'POST'){
             const {login, senha} = req.body;
@@ -15,3 +17,5 @@ export default  (
         }
         return res.status(405).json({erro: 'Metodo informado e invalido'});
 }
+
+export default conectarMongoDB(endpointLogin);
