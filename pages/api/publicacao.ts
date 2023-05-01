@@ -4,9 +4,8 @@ import nc from 'next-connect';
 import {upload, uploadImagemCosmic} from '../../services/uploadImagemCosmic';
 import {conectarMongoDB} from '../../middlewares/conectarMongoDB';
 import {validarTokenJWT} from '../../middlewares/validarTokenJWT';
-import { PublicacaoModel } from '../../models/PublicacaoModels';
-import { UsuarioModel } from '../../models/UsuarioModels';
-import { addAbortSignal } from 'stream';
+import {PublicacaoModel} from '../../models/PublicacaoModels';
+import {UsuarioModel} from '../../models/UsuarioModels';
 
 const handler = nc()
     .use(upload.single('file'))
@@ -15,7 +14,20 @@ const handler = nc()
             const {userId} = req.query;
             const usuario = await UsuarioModel.findById(userId);
             if(!usuario){
-                return res.status(400).json({erro : 'Usuario nao encontrado'})
+                return res.status(400).json({erro : 'Usuario nao encontrado'});
+            }
+
+            if(!req || !req.body){
+                return res.status(400).json({erro : 'Parametros de entrada nao informados'});
+            }
+            const {descricao} = req?.body;
+
+            if(!descricao || descricao.length < 2){
+                return res.status(400).json({erro : 'Descricao nao e valida'});
+            }
+    
+            if(!req.file || !req.file.originalname){
+                return res.status(400).json({erro : 'Imagem e obrigatoria'});
             }
 
             const image = await uploadImagemCosmic(req);
@@ -23,34 +35,24 @@ const handler = nc()
                 idUsuario : usuario._id,
                 descricao,
                 foto : image.media.url,
-                data : new Date
+                data : new Date()
             }
+
+            usuario.publicacoes++;
+            await UsuarioModel.findByIdAndUpdate({_id : usuario._id}, usuario);
 
             await PublicacaoModel.create(publicacao);
-            return res.status(200).json({msg : 'Publicacao criada com sucesso'})
-
-            if(!req || !req.body){
-                return res.status(400).json({erro : 'Parametros de entrada nao informado'})
-            }
-            const {descricao} = req?.body;
-
-            if(!descricao || descricao.length < 2) {
-                return res.status(400).json({erro : 'Descricao nao e valida'})
-            }
-            if(!req.file || !req.file.originalname) {
-                return res.status(400).json({erro : 'Imagem e obrigatoria'})
-            }
-            return res.status(200).json({msg : 'Publicacao esta valida'})
-            
+            return res.status(200).json({msg : 'Publicacao criada com sucesso'});
         }catch(e){
-            return res.status(400).json({erro : 'Erro ao cadastar publicacao'})
-        } 
-    });
-
-    export const config = {
-        api : {
-            bodyParser : false
+            console.log(e);
+            return res.status(400).json({erro : 'Erro ao cadastrar publicacao'});
         }
-    }
+});
 
-export default validarTokenJWT(conectarMongoDB(handler));
+export const config = {
+    api : {
+        bodyParser : false
+    }
+}
+
+export default validarTokenJWT(conectarMongoDB(handler)); 
