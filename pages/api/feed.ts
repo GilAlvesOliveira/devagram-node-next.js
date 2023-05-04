@@ -61,3 +61,5 @@ const feedEndpoint = async (req : NextApiRequest, res : NextApiResponse<Resposta
 }
 
 export default validarTokenJWT(conectarMongoDB(feedEndpoint));
+
+//teste
