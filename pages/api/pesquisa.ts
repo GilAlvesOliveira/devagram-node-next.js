@@ -5,6 +5,7 @@ import { validarTokenJWT } from '@/middlewares/validarTokenJWT';
 import { UsuarioModel } from '@/models/UsuarioModels';
 import usuario from './usuario';
 import { politicaCORS } from '@/middlewares/politicaCORS';
+import { SeguidorModel } from '@/models/SeguidorModel';
 
 const pesquisaEndpoint = async (req : NextApiRequest, res : NextApiResponse<RespostaPadraoMsg | any[]>) => {
 
@@ -15,8 +16,23 @@ const pesquisaEndpoint = async (req : NextApiRequest, res : NextApiResponse<Resp
                 if(!usuarioEncontrado){
                     return res.status(400).json({erro : 'Usuario nao encontrado'});
                 }
-                usuarioEncontrado.senha = null;
-                return res.status(200).json(usuarioEncontrado);
+                const user = {
+                    senha: null,
+                    segueEsseUsuario: false,
+                    nome: usuarioEncontrado.nome,
+                    email: usuarioEncontrado.email,
+                    _id: usuarioEncontrado._id,
+                    avatar: usuarioEncontrado.avatar,
+                    seguidores: usuarioEncontrado.seguidores,
+                    seguindo: usuarioEncontrado.seguindo,
+                    publicacoes: usuarioEncontrado.publicacoes,
+                } as any;
+
+                const segueEsseUsuario = await SeguidorModel.find({ usuarioId: req?.query?.userID, usuarioSeguidoId: usuarioEncontrado._id });
+                if (segueEsseUsuario && segueEsseUsuario.length > 0) {
+                    user.segueEsseUsuario = true;
+                }
+                return res.status(200).json(user); // Retorna o usuário encontrado pelo id
             }else{
                 const {filtro} = req.query;
                 if(!filtro || filtro.length < 2){
