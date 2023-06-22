@@ -28,7 +28,7 @@ const pesquisaEndpoint = async (req : NextApiRequest, res : NextApiResponse<Resp
                     publicacoes: usuarioEncontrado.publicacoes,
                 } as any;
 
-                const segueEsseUsuario = await SeguidorModel.find({ usuarioId: req?.query?.userID, usuarioSeguidoId: usuarioEncontrado._id });
+                const segueEsseUsuario = await SeguidorModel.find({ usuarioId: req?.query?.userId, usuarioSeguidoId: usuarioEncontrado._id });
                 if (segueEsseUsuario && segueEsseUsuario.length > 0) {
                     user.segueEsseUsuario = true;
                 }
